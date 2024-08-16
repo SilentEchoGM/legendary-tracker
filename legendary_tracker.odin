@@ -1,6 +1,7 @@
 package legendary_tracker
 
 import "core:crypto"
+import "core:encoding/csv"
 import "core:encoding/json"
 import "core:encoding/uuid"
 import "core:fmt"
@@ -65,7 +66,7 @@ print_scheme :: proc(scheme: Scheme, wins: []Win, name_col_width: int) -> string
 	strings.write_string(
 		&builder,
 		fmt.aprintf(
-			"|  %c  |  %v  |  %v  |  %v  |  %v  |  %v  |  %v  |  %v  |",
+			"| %v   | %v   | %v   | %v   | %v   | %v   | %v   | %v   |",
 			print_bool(0 in twist_set),
 			print_bool(1 in twist_set),
 			print_bool(2 in twist_set),
@@ -102,10 +103,73 @@ print_schemes :: proc(schemes: []Scheme, wins: []Win, name_col_width: int) -> st
 
 print_bool :: proc(truthy: bool) -> rune {
 	if truthy {
-		return '✓'
+		return '✔'
 	} else {
-		return 'x'
+		return ' '
 	}
+}
+
+csv_row_to_structs :: proc(row: []string) -> (wins: []Win, scheme: Scheme) {
+	context.random_generator = crypto.random_generator()
+	scheme.id = uuid.generate_v4()
+	scheme.name = row[0]
+
+	arr: [dynamic]Win
+	for v, i in row[1:] {
+		//fmt.printfln("'%v'", v)
+		if v == "x" {
+			fmt.println("Making Win struct")
+			win: Win
+			if i < 4 {
+				win.face_card = false
+			} else {
+				win.face_card = true
+			}
+
+			win.extra_twist = i % 4
+			win.scheme = scheme.id
+			win.id = uuid.generate_v4()
+
+			append(&arr, win)
+		}
+	}
+
+	fmt.printfln("%#v", arr)
+	wins = arr[:]
+	return
+}
+
+import_csv :: proc(path: string) -> (wins: []Win, schemes: []Scheme, ok: bool) {
+	file, err := os.open(path)
+	defer os.close(file)
+
+	if err != os.ERROR_NONE {
+		fmt.println("failed to open file", err)
+		return
+	}
+
+	stream := os.stream_from_handle(file)
+
+	reader: csv.Reader
+	csv.reader_init(&reader, stream, context.temp_allocator)
+
+	wins_arr: [dynamic]Win
+	schemes_arr: [dynamic]Scheme
+
+	for row, i in csv.iterator_next(&reader) {
+		fmt.println(i, " | ", row)
+		row_wins, row_scheme := csv_row_to_structs(row)
+		fmt.println(row_wins, row_scheme, wins[:])
+		append(&wins_arr, ..row_wins)
+		append(&schemes_arr, row_scheme)
+	}
+
+	wins = wins_arr[:]
+	schemes = schemes_arr[:]
+	ok = true
+
+	fmt.printfln("\n\n%#v\n\n%#v\n\n", wins, schemes)
+	return
 }
 
 main :: proc() {
@@ -113,8 +177,31 @@ main :: proc() {
 		windows.SetConsoleOutputCP(windows.CODEPAGE.UTF8)
 	}
 
+
 	schemes: [dynamic]Scheme
 	wins: [dynamic]Win
+
+	for arg, i in os.args {
+		if arg == "--import-backup" {
+			if i + 1 >= len(os.args) {
+				fmt.println("Need a path")
+				return
+			}
+			fmt.println("Importing backup", i)
+			import_wins, import_schemes, import_ok := import_csv(os.args[i + 1])
+			if !import_ok {
+				fmt.println("Failed to import")
+				return
+			}
+
+			append(&schemes, ..import_schemes)
+			append(&wins, ..import_wins)
+			save_wins(wins[:])
+			save_schemes(schemes[:])
+			return
+		}
+
+	}
 
 	loaded_schemes, schemes_ok := load_schemes()
 	if !schemes_ok {
@@ -159,7 +246,7 @@ main :: proc() {
 
 	input_str := strings.to_lower(strings.split_lines(string(buf[:n]))[0])
 
-	fmt.printfln("Searching for: '%v'", input_str)
+	fmt.printfln("\nSearching for: '%v'\n", input_str)
 	closest_schemes := get_closest_schemes(schemes[:], input_str)
 
 	selected_scheme, select_ok := select_scheme(closest_schemes[:])
@@ -314,16 +401,16 @@ add_scheme :: proc() -> (scheme: Scheme, ok: bool = true) {
 
 select_scheme :: proc(schemes: []Scheme) -> (selected_scheme: Scheme, ok: bool = true) {
 	for scheme, i in schemes {
-		fmt.printfln("%v: %v", i, scheme.name)
+		fmt.printfln("\t%v: %v", i, scheme.name)
 	}
 
 	new_scheme_opt := len(schemes)
 
-	fmt.printfln("%v: add new scheme", new_scheme_opt)
+	fmt.printfln("\n\t%v: add new scheme", new_scheme_opt)
 
 	buf := [1024]byte{}
 
-	fmt.print("Selection? ")
+	fmt.print("\nSelection? ")
 	n, err := os.read(os.stdin, buf[:])
 
 	if err != nil {
@@ -344,10 +431,20 @@ select_scheme :: proc(schemes: []Scheme) -> (selected_scheme: Scheme, ok: bool =
 
 	if selection == fmt.aprintf("%v", new_scheme_opt) {
 		selected_scheme, ok = add_scheme()
+
+		all_schemes, load_ok := load_schemes()
+		if !load_ok do panic("no schemes could be loaded which should never happen this late in execution")
+
+		arr: [dynamic]Scheme
+		defer delete(arr)
+		append(&arr, ..all_schemes)
+		append(&arr, selected_scheme)
+		save_schemes(arr[:])
+
 		return
 	}
 
-	fmt.printfln("Invalid selection: '%v'", selection, new_scheme_opt)
+	fmt.printfln("Invalid selection: '%v'", selection)
 
 	ok = false
 	return
@@ -404,31 +501,38 @@ load_schemes :: proc() -> (schemes: []Scheme, ok: bool) {
 }
 
 get_closest_schemes :: proc(schemes: []Scheme, input_str: string) -> (closest: [dynamic]Scheme) {
-	distances: [dynamic]int
+	Ordered :: struct {
+		scheme: Scheme,
+		score:  f32,
+	}
 
+	distances: [dynamic]Ordered
 	if len(schemes) == 0 {
 		return
 	}
 
 	for scheme, i in schemes {
-		inject_at(&distances, i, strings.levenshtein_distance(input_str, scheme.name))
+		score: f32 = 1 / f32(strings.levenshtein_distance(input_str, scheme.name)) + 1
+		if strings.contains(scheme.name, input_str) {
+			score *= 2
+		}
+		if strings.has_prefix(scheme.name, input_str) {
+			score *= 2
+		}
+
+
+		append(&distances, Ordered{scheme = scheme, score = score})
 	}
 
-	ordered_indices: [dynamic]int
+	ordered := distances[:]
+	slice.sort_by(ordered, proc(a, b: Ordered) -> bool {
+		return a.score < b.score
+	})
+	slice.reverse(ordered)
 
-	for i in 0 ..< len(schemes) {
 
-		if len(ordered_indices) == 0 {
-			append(&ordered_indices, i)
-			continue
-		}
-		if distances[i] < distances[ordered_indices[0]] {
-			inject_at(&ordered_indices, 0, i)
-		}
-	}
-
-	for index in 0 ..< min(5, len(schemes)) {
-		append(&closest, schemes[index])
+	for index in 0 ..< min(5, len(ordered)) {
+		append(&closest, ordered[index].scheme)
 	}
 
 	return
