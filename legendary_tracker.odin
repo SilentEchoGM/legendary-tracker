@@ -6,6 +6,7 @@ import "core:encoding/json"
 import "core:encoding/uuid"
 import "core:fmt"
 import "core:os"
+import "core:path/filepath"
 import "core:slice"
 import "core:strconv"
 import "core:strings"
@@ -322,7 +323,8 @@ save_wins :: proc(wins: []Win) -> bool {
 }
 
 load_wins :: proc() -> (wins: []Win, ok: bool) {
-	db_file, err := os.open("wins.json")
+	path := filepath.join([]string{get_dir(), "wins.json"})
+	db_file, err := os.open(path)
 	defer os.close(db_file)
 
 	if err != nil {
@@ -455,8 +457,14 @@ save_schemes :: proc(schemes: []Scheme) -> bool {
 	return os.write_entire_file("schemes.json", data)
 }
 
+get_dir :: proc() -> string {
+	dir, file := filepath.split(#file)
+	return dir
+}
 load_schemes :: proc() -> (schemes: []Scheme, ok: bool) {
-	db_file, err := os.open("schemes.json")
+	path := filepath.join([]string{get_dir(), "schemes.json"})
+
+	db_file, err := os.open(path)
 	defer os.close(db_file)
 
 	if err != nil {
