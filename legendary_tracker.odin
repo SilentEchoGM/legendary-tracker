@@ -152,7 +152,7 @@ main :: proc() {
 	fmt.print("Scheme? ")
 	n, err := os.read(os.stdin, buf[:])
 
-	if err != 0 {
+	if err != nil {
 		fmt.eprintln("Error reading: ", err)
 		return
 	}
@@ -193,7 +193,7 @@ add_win :: proc(scheme: Scheme) -> (win: Win, ok: bool = true) {
 
 	n, err = os.read(os.stdin, buf[:])
 
-	if err != 0 {
+	if err != nil {
 		fmt.println("Error reading: ", err)
 		ok = false
 		return
@@ -207,7 +207,7 @@ add_win :: proc(scheme: Scheme) -> (win: Win, ok: bool = true) {
 
 	n, err = os.read(os.stdin, buf[:])
 
-	if err != 0 {
+	if err != nil {
 		fmt.println("Error reading: ", err)
 		ok = false
 		return
@@ -239,10 +239,10 @@ load_wins :: proc() -> (wins: []Win, ok: bool) {
 	db_file, err := os.open("wins.json")
 	defer os.close(db_file)
 
-	if err != 0 {
+	if err != nil {
 		fmt.println("Failed to open wins file", err)
 
-		if err == 2 {
+		if err == os.General_Error.Not_Exist || err == windows.System_Error.FILE_NOT_FOUND {
 			empty: string = "[]"
 			write_ok := os.write_entire_file("wins.json", transmute([]u8)empty)
 
@@ -288,7 +288,7 @@ add_scheme :: proc() -> (scheme: Scheme, ok: bool = true) {
 
 	n, err = os.read(os.stdin, buf[:])
 
-	if err != 0 {
+	if err != nil {
 		fmt.eprintln("Error reading: ", err)
 		ok = false
 		return
@@ -301,7 +301,7 @@ add_scheme :: proc() -> (scheme: Scheme, ok: bool = true) {
 	fmt.print("Expansion? ")
 	n, err = os.read(os.stdin, buf[:])
 
-	if err != 0 {
+	if err != nil {
 		fmt.eprintln("Error reading: ", err)
 		ok = false
 		return
@@ -326,7 +326,7 @@ select_scheme :: proc(schemes: []Scheme) -> (selected_scheme: Scheme, ok: bool =
 	fmt.print("Selection? ")
 	n, err := os.read(os.stdin, buf[:])
 
-	if err != 0 {
+	if err != nil {
 		fmt.eprintln("Error reading: ", err)
 		ok = false
 		return
@@ -367,10 +367,10 @@ load_schemes :: proc() -> (schemes: []Scheme, ok: bool) {
 	db_file, err := os.open("schemes.json")
 	defer os.close(db_file)
 
-	if err != 0 {
+	if err != nil {
 		fmt.println("Failed to open schemes file", err)
 
-		if err == 2 {
+		if err == os.General_Error.Not_Exist || err == windows.System_Error.FILE_NOT_FOUND {
 			empty: string = "[]"
 			write_ok := os.write_entire_file("schemes.json", transmute([]u8)empty)
 
