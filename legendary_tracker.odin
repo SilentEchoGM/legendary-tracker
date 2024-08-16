@@ -157,6 +157,7 @@ import_csv :: proc(path: string) -> (wins: []Win, schemes: []Scheme, ok: bool) {
 	schemes_arr: [dynamic]Scheme
 
 	for row, i in csv.iterator_next(&reader) {
+		if i == 0 do continue
 		fmt.println(i, " | ", row)
 		row_wins, row_scheme := csv_row_to_structs(row)
 		fmt.println(row_wins, row_scheme, wins[:])
@@ -222,8 +223,6 @@ main :: proc() {
 			longest_scheme_name = scheme.name
 		}
 	}
-
-	fmt.printfln("Loaded schemes. Longest scheme name: '%v'", longest_scheme_name)
 
 	loaded_wins, wins_ok := load_wins()
 	if !wins_ok {
@@ -329,18 +328,14 @@ load_wins :: proc() -> (wins: []Win, ok: bool) {
 	if err != nil {
 		fmt.println("Failed to open wins file", err)
 
-		if err == os.General_Error.Not_Exist || err == windows.System_Error.FILE_NOT_FOUND {
-			empty: string = "[]"
-			write_ok := os.write_entire_file("wins.json", transmute([]u8)empty)
+		empty: string = "[]"
+		write_ok := os.write_entire_file("wins.json", transmute([]u8)empty)
 
-			if !write_ok {
-				ok := false
-				return
-			}
-			return load_wins()
+		if !write_ok {
+			ok := false
+			return
 		}
-		ok = false
-		return
+		return load_wins()
 	}
 
 	data, read_ok := os.read_entire_file(db_file, context.temp_allocator)
@@ -467,18 +462,14 @@ load_schemes :: proc() -> (schemes: []Scheme, ok: bool) {
 	if err != nil {
 		fmt.println("Failed to open schemes file", err)
 
-		if err == os.General_Error.Not_Exist || err == windows.System_Error.FILE_NOT_FOUND {
-			empty: string = "[]"
-			write_ok := os.write_entire_file("schemes.json", transmute([]u8)empty)
+		empty: string = "[]"
+		write_ok := os.write_entire_file("schemes.json", transmute([]u8)empty)
 
-			if !write_ok {
-				ok := false
-				return
-			}
-			return load_schemes()
+		if !write_ok {
+			ok := false
+			return
 		}
-		ok = false
-		return
+		return load_schemes()
 	}
 
 	data, read_ok := os.read_entire_file(db_file, context.temp_allocator)
