@@ -119,7 +119,7 @@ csv_row_to_structs :: proc(row: []string) -> (wins: []Win, scheme: Scheme) {
 	arr: [dynamic]Win
 	for v, i in row[1:] {
 		//fmt.printfln("'%v'", v)
-		if v == "x" {
+		if v != "" {
 			log.debug("Making Win struct")
 			win: Win
 			if i < 4 {
@@ -247,7 +247,6 @@ main :: proc() {
 	}
 
 	log.debugf("Loaded schemes. Longest scheme name: '%v'", longest_scheme_name)
-
 	loaded_wins, wins_ok := load_wins()
 	if !wins_ok {
 		log.error("Unable to load wins")
