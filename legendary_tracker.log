@@ -1,46 +1,55 @@
-[DEBUG] --- [2024-10-04 13:06:29] [legendary_tracker.odin:247:main()] Loaded schemes. Longest scheme name: 'secret invasion of the skull shapeshifters'
-[INFO ] --- [2024-10-04 13:06:29] [legendary_tracker.odin:257:main()] 
+[DEBUG] --- [2024-10-07 23:39:26] [legendary_tracker.odin:101:main()] Loaded schemes. Longest scheme name: 'secret invasion of the skull shapeshifters'
+[INFO ] --- [2024-10-07 23:39:26] [legendary_tracker.odin:110:main()] 
 
                     Name                    | +0  | +1  | +2  | +3  | F+0 | F+1 | F+2 | F+3 |
 
-   Flood The Planet With Melted Glaciers    | ✔   | ✔   |     |     | ✔   |     | ✔   |     |
-          War Of The Frost Giants           | ✔   | ✔   |     |     | ✔   |     |     |     |
-      Sneak Attack The Heroes' Homes        | ✔   | ✔   |     |     | ✔   |     |     |     |
-          Asgardian Test Of Worth           | ✔   | ✔   |     |     | ✔   |     |     |     |
-             Capture Baby Hope              | ✔   | ✔   |     |     | ✔   |     |     |     |
-        War For The Dream Dimension         | ✔   | ✔   |     |     | ✔   |     |     |     |
-         Break The Planet Asunder           | ✔   | ✔   |     |     | ✔   |     |     |     |
-       Trap Heroes In The Microverse        | ✔   | ✔   |     |     | ✔   |     |     |     |
-         Ruin The Perfect Wedding           | ✔   | ✔   |     |     | ✔   |     |     |     |
-    Transform Commuters Into Giant Ants     | ✔   | ✔   |     |     | ✔   |     |     |     |
-     Reveal Heroes' Secret Identities       | ✔   | ✔   |     |     | ✔   |     |     |     |
-         Epic Super Hero Civil War          | ✔   | ✔   |     |     | ✔   |     |     |     |
-   Replace Earth's Leaders With Killbots    | ✔   | ✔   |     |     | ✔   |     |     |     |
-             The Legacy Virus               | ✔   | ✔   |     |     | ✔   |     |     |     |
-      Hydra Helicarriers Hunt Heroes        | ✔   | ✔   |     |     | ✔   |     |     |     |
-        S.h.i.e.l.d. Vs. Hydra War          | ✔   | ✔   |     |     | ✔   |     |     |     |
-          Invincible Force Field            | ✔   | ✔   |     |     | ✔   |     |     |     |
-      Invade The Daily Bugle News Hq        | ✔   | ✔   |     |     | ✔   |     |     |     |
-       Negative Zone Prison Breakout        | ✔   | ✔   |     |     | ✔   |     |     |     |
-        Duels Of Science And Magic          | ✔   | ✔   |     |     | ✔   |     |     |     |
-         Secret Empire Of Betrayal          | ✔   | ✔   |     |     | ✔   |     |     |     |
-           Midtown Bank Robbery             | ✔   | ✔   |     |     | ✔   |     |     |     |
-      Pull Earth Into Medieval Times        | ✔   | ✔   |     |     | ✔   |     |     |     |
-               Age Of Ultron                | ✔   | ✔   |     |     | ✔   |     |     |     |
-               War Of Kings                 | ✔   | ✔   |     |     | ✔   |     |     |     |
-       Splice Human With Spider Dna         | ✔   | ✔   |     |     | ✔   |     |     |     |
-         Detonate The Helicarrier           | ✔   | ✔   |     |     | ✔   |     |     |     |
-     Imprison Unregistered Superhumans      | ✔   | ✔   |     |     | ✔   |     |     |     |
-            Mutating Gamma Rays             | ✔   | ✔   |     |     | ✔   |     |     |     |
-Secret Invasion Of The Skull Shapeshifters  | ✔   | ✔   |     |     | ✔   |     |     |     |
-           Organized Crime Wave             | ✔   | ✔   |     |     | ✔   |     |     |     |
-       Smash Two Dimensions Together        |     | ✔   | ✔   |     |     |     |     |     |
+   Flood The Planet With Melted Glaciers    |     |     |     |     |     |     |     |     |
+          War Of The Frost Giants           |     |     |     |     |     |     |     |     |
+      Sneak Attack The Heroes' Homes        |     |     |     |     |     |     |     |     |
+          Asgardian Test Of Worth           |     |     |     |     |     |     |     |     |
+             Capture Baby Hope              |     |     |     |     |     |     |     |     |
+        War For The Dream Dimension         |     |     |     |     |     |     |     |     |
+         Break The Planet Asunder           |     |     |     |     |     |     |     |     |
+       Trap Heroes In The Microverse        |     |     |     |     |     |     |     |     |
+         Ruin The Perfect Wedding           |     |     |     |     |     |     |     |     |
+    Transform Commuters Into Giant Ants     |     |     |     |     |     |     |     |     |
+     Reveal Heroes' Secret Identities       |     |     |     |     |     |     |     |     |
+         Epic Super Hero Civil War          |     |     |     |     |     |     |     |     |
+   Replace Earth's Leaders With Killbots    |     |     |     |     |     |     |     |     |
+             The Legacy Virus               |     |     |     |     |     |     |     |     |
+      Hydra Helicarriers Hunt Heroes        |     |     |     |     |     |     |     |     |
+        S.h.i.e.l.d. Vs. Hydra War          |     |     |     |     |     |     |     |     |
+          Invincible Force Field            |     |     |     |     |     |     |     |     |
+      Invade The Daily Bugle News Hq        |     |     |     |     |     |     |     |     |
+       Negative Zone Prison Breakout        |     |     |     |     |     |     |     |     |
+        Duels Of Science And Magic          |     |     |     |     |     |     |     |     |
+         Secret Empire Of Betrayal          |     |     |     |     |     |     |     |     |
+           Midtown Bank Robbery             |     |     |     |     |     |     |     |     |
+      Pull Earth Into Medieval Times        |     |     |     |     |     |     |     |     |
+               Age Of Ultron                |     |     |     |     |     |     |     |     |
+               War Of Kings                 |     |     |     |     |     |     |     |     |
+       Splice Human With Spider Dna         |     |     |     |     |     |     |     |     |
+         Detonate The Helicarrier           |     |     |     |     |     |     |     |     |
+     Imprison Unregistered Superhumans      |     |     |     |     |     |     |     |     |
+            Mutating Gamma Rays             |     |     |     |     |     |     |     |     |
+Secret Invasion Of The Skull Shapeshifters  |     |     |     |     |     |     |     |     |
+           Organized Crime Wave             |     |     |     |     |     |     |     |     |
+                   Test                     |     |     |     |     |     |     | ✔   |     |
 
 
 
-[INFO ] --- [2024-10-04 13:07:25] [legendary_tracker.odin:271:main()] 
+[INFO ] --- [2024-10-07 23:39:30] [legendary_tracker.odin:124:main()] 
 Searching for: ''
 
-[DEBUG] --- [2024-10-04 13:07:25] [legendary_tracker.odin:422:select_scheme()] Selecting scheme
-[INFO ] --- [2024-10-04 13:07:25] [legendary_tracker.odin:424:select_scheme()] 	0: war of kings
-[INFO ] --- [2024-10-04 13:07:25] [legendary_tracker.odin:424:select_scheme()] 	1: age of ultron
+[DEBUG] --- [2024-10-07 23:39:30] [legendary_tracker.odin:276:select_scheme()] Selecting scheme
+[INFO ] --- [2024-10-07 23:39:30] [legendary_tracker.odin:278:select_scheme()] 	0: test
+[INFO ] --- [2024-10-07 23:39:30] [legendary_tracker.odin:278:select_scheme()] 	1: war of kings
+eme()] 	2: war of kings
+[INFO ] --- [2024-10-07 23:39:15] [legendary_tracker.odin:278:select_scheme()] 	3: the legacy virus
+[INFO ] --- [2024-10-07 23:39:15] [legendary_tracker.odin:278:select_scheme()] 	4: capture baby hope
+[INFO ] --- [2024-10-07 23:39:15] [legendary_tracker.odin:283:select_scheme()] 
+	5: add new scheme
+[DEBUG] --- [2024-10-07 23:39:17] [legendary_tracker.odin:239:add_scheme()] Adding new scheme.
+[INFO ] --- [2024-10-07 23:39:21] [legendary_tracker.odin:132:main()] 'test' selected
+[DEBUG] --- [2024-10-07 23:39:21] [legendary_tracker.odin:146:add_win()] Adding new win.
+[INFO ] --- [2024-10-07 23:39:23] [legendary_tracker.odin:138:main()] Wins updated!
