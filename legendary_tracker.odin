@@ -5,6 +5,7 @@ import "core:encoding/csv"
 import "core:encoding/json"
 import "core:encoding/uuid"
 import "core:fmt"
+import "core:log"
 import "core:os"
 import "core:path/filepath"
 import "core:slice"
@@ -119,7 +120,7 @@ csv_row_to_structs :: proc(row: []string) -> (wins: []Win, scheme: Scheme) {
 	for v, i in row[1:] {
 		//fmt.printfln("'%v'", v)
 		if v == "x" {
-			fmt.println("Making Win struct")
+			log.debug("Making Win struct")
 			win: Win
 			if i < 4 {
 				win.face_card = false
@@ -135,7 +136,7 @@ csv_row_to_structs :: proc(row: []string) -> (wins: []Win, scheme: Scheme) {
 		}
 	}
 
-	fmt.printfln("%#v", arr)
+	log.infof("%#v", arr)
 	wins = arr[:]
 	return
 }
@@ -145,7 +146,7 @@ import_csv :: proc(path: string) -> (wins: []Win, schemes: []Scheme, ok: bool) {
 	defer os.close(file)
 
 	if err != os.ERROR_NONE {
-		fmt.println("failed to open file", err)
+		log.error("failed to open csv file", err)
 		return
 	}
 
@@ -170,7 +171,7 @@ import_csv :: proc(path: string) -> (wins: []Win, schemes: []Scheme, ok: bool) {
 	schemes = schemes_arr[:]
 	ok = true
 
-	fmt.printfln("\n\n%#v\n\n%#v\n\n", wins, schemes)
+	log.infof("\n\n%#v\n\n%#v\n\n", wins, schemes)
 	return
 }
 
@@ -179,6 +180,23 @@ main :: proc() {
 		windows.SetConsoleOutputCP(windows.CODEPAGE.UTF8)
 	}
 
+	log_path := "legendary_tracker.log"
+	if !os.exists(log_path) {
+		os.write_entire_file(log_path, []byte{})
+	}
+	log_file, log_file_err := os.open(log_path, 2)
+
+	if log_file_err != os.ERROR_NONE {
+		fmt.println("unable to open log file", log_file_err)
+	}
+
+	defer os.close(log_file)
+
+	file_logger := log.create_file_logger(log_file)
+	console_logger := log.create_console_logger()
+
+	context.logger = log.create_multi_logger(file_logger, console_logger)
+
 
 	schemes: [dynamic]Scheme
 	wins: [dynamic]Win
@@ -186,13 +204,13 @@ main :: proc() {
 	for arg, i in os.args {
 		if arg == "--import-backup" {
 			if i + 1 >= len(os.args) {
-				fmt.println("Need a path")
+				log.error("Need a path")
 				return
 			}
-			fmt.println("Importing backup", i)
+			log.info("Importing backup", i)
 			import_wins, import_schemes, import_ok := import_csv(os.args[i + 1])
 			if !import_ok {
-				fmt.println("Failed to import")
+				log.error("Failed to import")
 				return
 			}
 
@@ -200,6 +218,7 @@ main :: proc() {
 			append(&wins, ..import_wins)
 			save_wins(wins[:])
 			save_schemes(schemes[:])
+			log.info("Backup successfully imported!")
 			return
 		}
 
@@ -207,6 +226,7 @@ main :: proc() {
 
 	loaded_schemes, schemes_ok := load_schemes()
 	if !schemes_ok {
+		log.error("Unable to load schemes")
 		return
 	}
 
@@ -216,6 +236,7 @@ main :: proc() {
 		scheme, add_scheme_ok := add_scheme()
 		append(&schemes, scheme)
 		save_schemes(schemes[:])
+		log.debug("Schemes saved")
 	}
 
 	longest_scheme_name := schemes[0].name
@@ -225,14 +246,17 @@ main :: proc() {
 		}
 	}
 
+	log.debugf("Loaded schemes. Longest scheme name: '%v'", longest_scheme_name)
+
 	loaded_wins, wins_ok := load_wins()
 	if !wins_ok {
+		log.error("Unable to load wins")
 		return
 	}
 
 	append(&wins, ..loaded_wins)
 
-	fmt.printfln("\n\n%v\n\n", print_schemes(schemes[:], wins[:], len(longest_scheme_name) + 2))
+	log.infof("\n\n%v\n\n", print_schemes(schemes[:], wins[:], len(longest_scheme_name) + 2))
 
 	buf: [1024]byte
 
@@ -240,34 +264,35 @@ main :: proc() {
 	n, err := os.read(os.stdin, buf[:])
 
 	if err != nil {
-		fmt.eprintln("Error reading: ", err)
+		log.error("Error reading: ", err)
 		return
 	}
 
 	input_str := strings.to_lower(strings.split_lines(string(buf[:n]))[0])
 
-	fmt.printfln("\nSearching for: '%v'\n", input_str)
+	log.infof("\nSearching for: '%v'\n", input_str)
 	closest_schemes := get_closest_schemes(schemes[:], input_str)
 
 	selected_scheme, select_ok := select_scheme(closest_schemes[:])
 	if !select_ok {
+		log.error("Failed to select a scheme")
 		return
 	}
-	fmt.printfln("'%v' selected", selected_scheme.name)
+	log.infof("'%v' selected", selected_scheme.name)
 
 	new_win, add_win_ok := add_win(selected_scheme)
 	if (add_win_ok) {
 		append(&wins, new_win)
 		save_wins(wins[:])
-		fmt.println("Wins updated!")
+		log.info("Wins updated!")
 	} else {
-		fmt.println("Failed to update wins.")
+		log.error("Failed to update wins.")
 	}
 
 }
 
 add_win :: proc(scheme: Scheme) -> (win: Win, ok: bool = true) {
-	fmt.println("Adding new win.")
+	log.debug("Adding new win.")
 	buf: [1024]byte
 
 	context.random_generator = crypto.random_generator()
@@ -281,7 +306,7 @@ add_win :: proc(scheme: Scheme) -> (win: Win, ok: bool = true) {
 	n, err = os.read(os.stdin, buf[:])
 
 	if err != nil {
-		fmt.println("Error reading: ", err)
+		log.error("Error reading: ", err)
 		ok = false
 		return
 	}
@@ -295,7 +320,7 @@ add_win :: proc(scheme: Scheme) -> (win: Win, ok: bool = true) {
 	n, err = os.read(os.stdin, buf[:])
 
 	if err != nil {
-		fmt.println("Error reading: ", err)
+		log.error("Error reading: ", err)
 		ok = false
 		return
 	}
@@ -306,7 +331,7 @@ add_win :: proc(scheme: Scheme) -> (win: Win, ok: bool = true) {
 	} else if face == "n" {
 		win.face_card = false
 	} else {
-		fmt.println("Invalid response")
+		log.error("Invalid response (should be y/n):", face)
 		ok = false
 	}
 	return
@@ -316,7 +341,7 @@ save_wins :: proc(wins: []Win) -> bool {
 	data, err := json.marshal(wins, {}, context.temp_allocator)
 
 	if err != nil {
-		fmt.println("Unable to marshal wins", err)
+		log.error("Unable to marshal wins", err)
 		return false
 	}
 	return os.write_entire_file("wins.json", data)
@@ -328,7 +353,7 @@ load_wins :: proc() -> (wins: []Win, ok: bool) {
 	defer os.close(db_file)
 
 	if err != nil {
-		fmt.println("Failed to open wins file", err)
+		log.error("Failed to open wins file", err)
 
 		empty: string = "[]"
 		write_ok := os.write_entire_file("wins.json", transmute([]u8)empty)
@@ -343,7 +368,7 @@ load_wins :: proc() -> (wins: []Win, ok: bool) {
 	data, read_ok := os.read_entire_file(db_file, context.temp_allocator)
 
 	if !read_ok {
-		fmt.println("Failed to read wins file")
+		log.error("Failed to read wins file:", read_ok)
 		ok = false
 		return
 	}
@@ -351,7 +376,7 @@ load_wins :: proc() -> (wins: []Win, ok: bool) {
 	unmarshall_err := json.unmarshal(data, &wins)
 
 	if unmarshall_err != nil {
-		fmt.println("Failed to unmarshall wins file", unmarshall_err)
+		log.error("Failed to unmarshall wins file", unmarshall_err)
 		ok = false
 		return
 	}
@@ -360,7 +385,7 @@ load_wins :: proc() -> (wins: []Win, ok: bool) {
 }
 
 add_scheme :: proc() -> (scheme: Scheme, ok: bool = true) {
-	fmt.println("Adding new scheme.")
+	log.debug("Adding new scheme.")
 	buf: [1024]byte
 
 	context.random_generator = crypto.random_generator()
@@ -373,7 +398,7 @@ add_scheme :: proc() -> (scheme: Scheme, ok: bool = true) {
 	n, err = os.read(os.stdin, buf[:])
 
 	if err != nil {
-		fmt.eprintln("Error reading: ", err)
+		log.error("Error reading: ", err)
 		ok = false
 		return
 	}
@@ -386,7 +411,7 @@ add_scheme :: proc() -> (scheme: Scheme, ok: bool = true) {
 	n, err = os.read(os.stdin, buf[:])
 
 	if err != nil {
-		fmt.eprintln("Error reading: ", err)
+		log.debug("Error reading: ", err)
 		ok = false
 		return
 	}
@@ -397,13 +422,14 @@ add_scheme :: proc() -> (scheme: Scheme, ok: bool = true) {
 }
 
 select_scheme :: proc(schemes: []Scheme) -> (selected_scheme: Scheme, ok: bool = true) {
+	log.debug("Selecting scheme")
 	for scheme, i in schemes {
-		fmt.printfln("\t%v: %v", i, scheme.name)
+		log.infof("\t%v: %v", i, scheme.name)
 	}
 
 	new_scheme_opt := len(schemes)
 
-	fmt.printfln("\n\t%v: add new scheme", new_scheme_opt)
+	log.infof("\n\t%v: add new scheme", new_scheme_opt)
 
 	buf := [1024]byte{}
 
@@ -411,7 +437,7 @@ select_scheme :: proc(schemes: []Scheme) -> (selected_scheme: Scheme, ok: bool =
 	n, err := os.read(os.stdin, buf[:])
 
 	if err != nil {
-		fmt.eprintln("Error reading: ", err)
+		log.error("Error reading: ", err)
 		ok = false
 		return
 	}
@@ -419,14 +445,14 @@ select_scheme :: proc(schemes: []Scheme) -> (selected_scheme: Scheme, ok: bool =
 	selection := strings.trim_space(string(buf[:n]))
 
 	for scheme, i in schemes {
-		index := fmt.aprintf("%v", i)
+		index := fmt.tprintf("%v", i)
 		if selection == index {
 			selected_scheme = scheme
 			return
 		}
 	}
 
-	if selection == fmt.aprintf("%v", new_scheme_opt) {
+	if selection == fmt.tprintf("%v", new_scheme_opt) {
 		selected_scheme, ok = add_scheme()
 
 		all_schemes, load_ok := load_schemes()
@@ -441,7 +467,7 @@ select_scheme :: proc(schemes: []Scheme) -> (selected_scheme: Scheme, ok: bool =
 		return
 	}
 
-	fmt.printfln("Invalid selection: '%v'", selection)
+	log.errorf("Invalid selection: '%v'", selection)
 
 	ok = false
 	return
@@ -451,7 +477,7 @@ save_schemes :: proc(schemes: []Scheme) -> bool {
 	data, err := json.marshal(schemes, {}, context.temp_allocator)
 
 	if err != nil {
-		fmt.println("Unable to marshal schemes", err)
+		log.error("Unable to marshal schemes", err)
 		return false
 	}
 	return os.write_entire_file("schemes.json", data)
@@ -468,7 +494,7 @@ load_schemes :: proc() -> (schemes: []Scheme, ok: bool) {
 	defer os.close(db_file)
 
 	if err != nil {
-		fmt.println("Failed to open schemes file", err)
+		log.error("Failed to open schemes file", err)
 
 		empty: string = "[]"
 		write_ok := os.write_entire_file("schemes.json", transmute([]u8)empty)
@@ -483,7 +509,7 @@ load_schemes :: proc() -> (schemes: []Scheme, ok: bool) {
 	data, read_ok := os.read_entire_file(db_file, context.temp_allocator)
 
 	if !read_ok {
-		fmt.println("Failed to read schemes file")
+		log.error("Failed to read schemes file:", read_ok)
 		ok = false
 		return
 	}
@@ -491,7 +517,7 @@ load_schemes :: proc() -> (schemes: []Scheme, ok: bool) {
 	unmarshall_err := json.unmarshal(data, &schemes)
 
 	if unmarshall_err != nil {
-		fmt.println("Failed to unmarshall schemes file", unmarshall_err)
+		log.error("Failed to unmarshall schemes file", unmarshall_err)
 		ok = false
 		return
 	}
